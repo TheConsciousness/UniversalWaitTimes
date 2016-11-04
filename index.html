@@ -32,7 +32,7 @@
 		var settings = decodeURIComponent(window.location.search).replace('?settings=','');
 
 		if (settings == "null") {
-			settings = '{"file_url":"https://yoursite.com/rides.php"}';
+			settings = '{"fileurl":"https://yoursite.com/rides.php"}';
 		}
 		if (settings) {
 			var json = $.parseJSON(settings);
@@ -44,7 +44,7 @@
   }
 	function saveOptions() {
 		var options = {
-			'fileurl': $("#file_url").val(),
+			'fileurl': $("#theurl").val(),
 		}
 		return options;
 	}
