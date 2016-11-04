@@ -22,9 +22,10 @@
 			settings = '{"file_url":"https://yoursite.com/rides.php"}';
 		}
 		if (settings) {
+			alert(settings);
 			var json = $.parseJSON(settings);
-			if (json.phpurl) {
-				$('#file_url').val(json.phpurl);
+			if (json.fileurl) {
+				$('#file_url').val(json.fileurl);
 			}
       }
     }
