@@ -18,11 +18,11 @@
   function updateSettings() {
 	if (window.location.search) {
 		var settings = decodeURIComponent(window.location.search).replace('?settings=','');
+		alert(settings);
 		if (settings == "null") {
 			settings = '{"file_url":"https://yoursite.com/rides.php"}';
 		}
 		if (settings) {
-			alert(settings);
 			var json = $.parseJSON(settings);
 			if (json.fileurl) {
 				$('#file_url').val(json.fileurl);
