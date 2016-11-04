@@ -3,6 +3,18 @@
 <head>
 <title>Pebble App Settings</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+</head>
+<body>
+<p>Universal Wait Time Settings</p>
+
+<p>PHP file URL:</p>
+<input type="text" id="theurl">
+<br>
+<input type="submit" id="subButton"></button>
+
+
+
 <script>
 /*
   $(document).ready(function(e) {
@@ -18,14 +30,14 @@
   function updateSettings() {
 	if (window.location.search) {
 		var settings = decodeURIComponent(window.location.search).replace('?settings=','');
-		alert(settings);
+
 		if (settings == "null") {
 			settings = '{"file_url":"https://yoursite.com/rides.php"}';
 		}
 		if (settings) {
 			var json = $.parseJSON(settings);
 			if (json.fileurl) {
-				$('#file_url').val(json.fileurl);
+				$("#theurl").val(json.fileurl);
 			}
       }
     }
@@ -45,17 +57,11 @@
 			document.location = location;
 		});
 	});
-	$(document).bind('pageinit', updateSettings);
+	$(document).ready(updateSettings());
   
   
 </script>
-</head>
-<body>
-<p>Universal Wait Time Settings</p>
 
-<p>PHP file URL:</p>
-<input type="text" id="file_url">
-<br>
-<button id="subButton">Submit</button>
+
 </body>
 </html>
