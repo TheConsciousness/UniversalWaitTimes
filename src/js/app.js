@@ -499,7 +499,7 @@ var populateTimes = function() {
 
 /*
 Settings.config(
-  { url:'https://jordanbrinkman.com/universal/settings.htm' },
+  { url:'' },
   function(e) {
     console.log('opened config');
   },
