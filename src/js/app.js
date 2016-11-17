@@ -1,5 +1,6 @@
 /**
 To-do list:
+ 1. Implement UUID to localStorage and error log sending
  
  */
 
@@ -97,62 +98,65 @@ var checkWatchedRides = function() {
 
 var scheduleEvent = function() {
   var watchedRides = JSON.parse(localStorage.getItem("watchedRides"));
-  
-  if (watchedRides.wakes > 0)
+
+  if (watchedRides !== null)
     {
-      console.log("Trying to schedule...");
-      
-      // 15 minutes from now
-      var wakeTime = Date.now() / 1000 + 900;
-      
-      wakeupVar = Wakeup.schedule(
-        {
-          time: wakeTime,
-          data: { wakeTime: wakeTime }
-        },
-        function(e) {
-          if (e.failed) {
-            // Log the error reason
-            console.log('Wakeup set failed: ' + e.error);
-          } else {
-            
-            timerTimeout = null;
-            clearTimeout(timerTimeout);
-            
-            timerTimeout = setTimeout(function() {
-              console.log('Secondary timeout triggered');
-              checkWatchedRides();
+      if (watchedRides.wakes > 0)
+      {
+        console.log("Trying to schedule...");
+        
+        // 15 minutes from now
+        var wakeTime = Date.now() / 1000 + 900;
+        
+        wakeupVar = Wakeup.schedule(
+          {
+            time: wakeTime,
+            data: { wakeTime: wakeTime }
+          },
+          function(e) {
+            if (e.failed) {
+              // Log the error reason
+              console.log('Wakeup set failed: ' + e.error);
+            } else {
               
-              //details.title("Took:");
-              //details.subtitle(((Date.now() - timeSet) / 1000) / 60);
-              //details.body("minutes");
-              //details.show();
-            }, 900000);
-            
-            watchedRides.wakes -= 1;
-            console.log(watchedRides.wakes + " wakes left");
-            console.log('Wakeup set! Event ID: ' + e.id);
-            localStorage.setItem("watchedRides", JSON.stringify(watchedRides));
-            
-            console.log("scheduleEvent timerTimeout: " + timerTimeout);
-            console.log('Timeout scheduled at: ' + wakeTime);
-            timeSet = Date.now();
+              timerTimeout = null;
+              clearTimeout(timerTimeout);
+              
+              timerTimeout = setTimeout(function() {
+                console.log('Secondary timeout triggered');
+                checkWatchedRides();
+                
+                //details.title("Took:");
+                //details.subtitle(((Date.now() - timeSet) / 1000) / 60);
+                //details.body("minutes");
+                //details.show();
+              }, 900000);
+              
+              watchedRides.wakes -= 1;
+              console.log(watchedRides.wakes + " wakes left");
+              console.log('Wakeup set! Event ID: ' + e.id);
+              localStorage.setItem("watchedRides", JSON.stringify(watchedRides));
+              
+              console.log("scheduleEvent timerTimeout: " + timerTimeout);
+              console.log('Timeout scheduled at: ' + wakeTime);
+              timeSet = Date.now();
+            }
           }
-        }
-      );      
-    }
-  else if (watchedRides.wakes <= 0)
-    {
-      console.log("scheduleEvent() clearing all wakeups and watchedRides");
-      console.log("Timer: " + JSON.stringify(timerTimeout) + " will now be cleared");
-      
-      clearWakes();
-      
-      clearTimeout(timerTimeout);
-      timerTimeout = null;
-      console.log(timerTimeout + " cleared?");
-      localStorage.setItem("watchedRides", null);
-      populateTimes();
+        );      
+      }
+    else if (watchedRides.wakes <= 0)
+      {
+        console.log("scheduleEvent() clearing all wakeups and watchedRides");
+        console.log("Timer: " + JSON.stringify(timerTimeout) + " will now be cleared");
+        
+        clearWakes();
+        
+        clearTimeout(timerTimeout);
+        timerTimeout = null;
+        console.log(timerTimeout + " cleared?");
+        localStorage.setItem("watchedRides", null);
+        populateTimes();
+      }
     }
 };
 
