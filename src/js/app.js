@@ -1,18 +1,5 @@
 /**
- * Welcome to Pebble.js!
- *
- * Todo:
- 1. On selecting a ride to be watched, append it to the list retrieved from Wakeup, as to not make 2 wakeup process
-    Also reset the wakeup process by killing it, and creating a new one for the next 2 hours
-    
- 2. The app won't 'wakeup' and check for wait time changes when the app is open,
-    so when opening the app, get the e.data (time when wakeup should occur), and if
-    that time is within 5 minutes, use setInterval to set an 'in-app' alarm.
-    Only one will occur, setInterval or wakeup so it wont matter. The setInterval
-    appears to be killed on exit.
-    
- 3. Change the '==' on the time comparer to <
- 
+To-do list:
  
  */
 
@@ -274,7 +261,7 @@ details.on('click', 'select', function(e) {
     else
       {
         watchedRides.rides[details.body()] = details.subtitle().split(" ")[0];
-        watchedRides.wakes = 6;
+        watchedRides.wakes = 8;
         messages.title(details.title());
         messages.subtitle("Added to watchlist");
         messages.body("");
@@ -284,7 +271,7 @@ details.on('click', 'select', function(e) {
     }
   else
   {
-    watchedRides.wakes = 6;
+    watchedRides.wakes = 8;
     watchedRides.ride[details.body()] = details.subtitle().split(" ")[0];
     
     messages.title(details.title());
@@ -294,7 +281,7 @@ details.on('click', 'select', function(e) {
   }
   
   if (Object.keys(watchedRides.rides).length < 1)
-    { watchedRides.wakes = 0; }
+    { watchedRides.wakes = 0; clearWakes(); }
   
   console.log("saving: " + JSON.stringify(watchedRides));
   localStorage.setItem("watchedRides", JSON.stringify(watchedRides));
@@ -499,7 +486,7 @@ var populateTimes = function() {
 
 /*
 Settings.config(
-  { url:'' },
+  { url:'https://jordanbrinkman.com/universal/settings.htm' },
   function(e) {
     console.log('opened config');
   },
