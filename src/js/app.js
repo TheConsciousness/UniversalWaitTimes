@@ -14,6 +14,12 @@ var timerTimeout;
 var timeSet;
 var wakeupVar;
 
+var log = function(message) {
+  var theTime = new Date(Date.now());
+  var formatted = (theTime.getMonth()+1) + '/' + theTime.getDate() + '/' +  theTime.getFullYear() + " " + theTime.getHours() + ":" + theTime.getMinutes() + ":" + theTime.getSeconds();
+  console.log(formatted + ": " + message);
+};
+
 var main = new UI.Menu({
     sections: [{
       items: [{
@@ -24,12 +30,12 @@ var main = new UI.Menu({
   });
 
 var clearWakes = function() {
-  console.log("Clearing Wakes");
+  log("Clearing Wakes");
 
   Wakeup.each(function(e) {
     Wakeup.cancel(e);
     Wakeup.cancel(e.id);
-    console.log(e.id + " canceled");
+    log(e.id + " canceled");
   });
   Wakeup.cancel('all'); 
   
@@ -39,11 +45,11 @@ var checkWatchedRides = function() {
   // Check rides for better times
   // Clearing the interval
   
-  console.log("Checking Rides at " + new Date(Date.now()));
+  log("Checking Rides at " + new Date(Date.now()));
   Vibe.vibrate('short');
-  //console.log("Clearing interval: " + timerInterval);
+  //log("Clearing interval: " + timerInterval);
   //clearInterval(timerInterval);
-  //console.log("Interval: " + timerInterval + " cleared");
+  //log("Interval: " + timerInterval + " cleared");
     
   if (localStorage.getItem("watchedRides") !== null)
     {
@@ -56,15 +62,15 @@ var checkWatchedRides = function() {
       
       for (var ride in watchedRides.rides)
         {
-          //console.log("JSON: " + JSON.stringify(watchedRides));
-          //console.log("Now: " + JSON.stringify(rideData[ride].RideName) + " - " + JSON.stringify(rideData[ride].WaitTime));
-          //console.log("Then: " + JSON.stringify(ride) + " - " + watchedRides.rides[ride]);
+          //log("JSON: " + JSON.stringify(watchedRides));
+          //log("Now: " + JSON.stringify(rideData[ride].RideName) + " - " + JSON.stringify(rideData[ride].WaitTime));
+          //log("Then: " + JSON.stringify(ride) + " - " + watchedRides.rides[ride]);
           
           // If current time time is less than saved time
           // Not likely to see this, so test with ==
           if (JSON.stringify(rideData[ride].WaitTime) < watchedRides.rides[ride])
             {
-              //console.log(JSON.stringify(rideData[ride]) + ": " + JSON.stringify(rideData[ride].WaitTime) + " < " + JSON.stringify(watchedRides.rides[ride]));
+              //log(JSON.stringify(rideData[ride]) + ": " + JSON.stringify(rideData[ride].WaitTime) + " < " + JSON.stringify(watchedRides.rides[ride]));
               
               var shortened = JSON.stringify(rideData[ride].RideName).split(" ")[0] + " " + JSON.stringify(rideData[ride].RideName).split(" ")[1];
               lessTitle += shortened + ": " + JSON.stringify(rideData[ride].WaitTime) + " < " + watchedRides.rides[ride] + "; ";
@@ -76,7 +82,7 @@ var checkWatchedRides = function() {
             }
         }
       lessTitle = lessTitle.replace(/"/g, "");
-      console.log(lessTitle);
+      log(lessTitle);
       if (lessTitle.length > 1)
       {
         details.title("");
@@ -90,8 +96,14 @@ var checkWatchedRides = function() {
           scheduleEvent();
         }
       else {
-        clearInterval(timerTimeout); 
+        log("checkWatchedRides: Clearing wakeups and watchedRides");
+        clearTimeout(timerTimeout);
+        timerTimeout = null;
+        log("Timeout: " + timerTimeout + " cleared");
+        
         clearWakes();
+        localStorage.setItem("watchedRides", null);
+        populateTimes();
       }
     }
 };
@@ -103,7 +115,7 @@ var scheduleEvent = function() {
     {
       if (watchedRides.wakes > 0)
       {
-        console.log("Trying to schedule...");
+        log("Trying to schedule...");
         
         // 15 minutes from now
         var wakeTime = Date.now() / 1000 + 900;
@@ -116,14 +128,13 @@ var scheduleEvent = function() {
           function(e) {
             if (e.failed) {
               // Log the error reason
-              console.log('Wakeup set failed: ' + e.error);
+              log('Wakeup set failed: ' + e.error);
             } else {
               
               timerTimeout = null;
               clearTimeout(timerTimeout);
               
               timerTimeout = setTimeout(function() {
-                console.log('Secondary timeout triggered');
                 checkWatchedRides();
                 
                 //details.title("Took:");
@@ -132,28 +143,27 @@ var scheduleEvent = function() {
                 //details.show();
               }, 900000);
               
-              watchedRides.wakes -= 1;
-              console.log(watchedRides.wakes + " wakes left");
-              console.log('Wakeup set! Event ID: ' + e.id);
-              localStorage.setItem("watchedRides", JSON.stringify(watchedRides));
+              log(watchedRides.wakes + " wakes left");
+              log('Wakeup set! Event ID: ' + e.id);
               
-              console.log("scheduleEvent timerTimeout: " + timerTimeout);
-              console.log('Timeout scheduled at: ' + wakeTime);
+              log("scheduleEvent timerTimeout: " + timerTimeout);
+              log('Timeout scheduled at: ' + wakeTime);
               timeSet = Date.now();
+              
+              watchedRides.wakes -= 1;
+              localStorage.setItem("watchedRides", JSON.stringify(watchedRides));
             }
           }
         );      
       }
-    else if (watchedRides.wakes <= 0)
+      else if (watchedRides.wakes <= 0)
       {
-        console.log("scheduleEvent() clearing all wakeups and watchedRides");
-        console.log("Timer: " + JSON.stringify(timerTimeout) + " will now be cleared");
-        
-        clearWakes();
-        
+        log("scheduleEvent: Clearing wakeups and watchedRides");
         clearTimeout(timerTimeout);
         timerTimeout = null;
-        console.log(timerTimeout + " cleared?");
+        log("Timeout: " + timerTimeout + " cleared");
+
+        clearWakes();
         localStorage.setItem("watchedRides", null);
         populateTimes();
       }
@@ -192,7 +202,7 @@ watchedMenu.on('select', function(e) {
 settings.on('select', function(e) {
   if (e.item.title == "Clear watched")
     { 
-      console.log("Clearing Watched Rides and Wakes");
+      log("Clearing Watched Rides and Wakes");
       localStorage.removeItem("watchedRides");
       
       clearWakes();
@@ -200,20 +210,20 @@ settings.on('select', function(e) {
     }
   else if (e.item.title == "Clear parks")
     { 
-      console.log("Clearing Parks and LastUpdate");
+      log("Clearing Parks and LastUpdate");
       localStorage.removeItem("rideData");
       localStorage.removeItem("lastUpdate");
     }
   else if (e.item.title == "Clear wakes")
     { 
-      console.log("Clearing Wakes");
+      log("Clearing Wakes");
       clearWakes();      
       clearTimeout(timerTimeout);
       timerTimeout = null;
     }
   else if (e.item.title == "Clear storage")
     {
-      console.log("Clearing Storage");
+      log("Clearing Storage");
       localStorage.removeItem("rideData");
       localStorage.removeItem("lastUpdate");
       localStorage.removeItem("watchedRides");
@@ -265,7 +275,7 @@ details.on('click', 'select', function(e) {
     else
       {
         watchedRides.rides[details.body()] = details.subtitle().split(" ")[0];
-        watchedRides.wakes = 8;
+        watchedRides.wakes = 2;
         messages.title(details.title());
         messages.subtitle("Added to watchlist");
         messages.body("");
@@ -275,7 +285,7 @@ details.on('click', 'select', function(e) {
     }
   else
   {
-    watchedRides.wakes = 8;
+    watchedRides.wakes = 2;
     watchedRides.ride[details.body()] = details.subtitle().split(" ")[0];
     
     messages.title(details.title());
@@ -287,7 +297,7 @@ details.on('click', 'select', function(e) {
   if (Object.keys(watchedRides.rides).length < 1)
     { watchedRides.wakes = 0; clearWakes(); }
   
-  console.log("saving: " + JSON.stringify(watchedRides));
+  log("saving: " + JSON.stringify(watchedRides));
   localStorage.setItem("watchedRides", JSON.stringify(watchedRides));
   populateTimes();
   
@@ -385,7 +395,7 @@ var ajaxCall = function() {
   else {
     ajax({ url: JSON.parse(localStorage.getItem("settings")).fileurl, type: 'json' },
            function success(data, status) {
-             //console.log('Success: ' + status);             
+             //log('Success: ' + status);             
              // Make ride data persistant
              localStorage.setItem("rideData", JSON.stringify(data));
              populateTimes();
@@ -395,7 +405,7 @@ var ajaxCall = function() {
                 title: 'Refresh Times'
               }];
              main.items(0, mainMenu);
-             console.log('Error: ' + status + ' ' + error);
+             log('Error: ' + status + ' ' + error);
              
              messages.title("Error");
              messages.subtitle("");
@@ -457,9 +467,9 @@ var populateTimes = function() {
     indRide.id = ride;
     indRide.title = rideData[ride].RideName;
     
-    //console.log(indRide.subtitle);
-    //console.log(indRide.id);
-    //console.log(indRide.title);
+    //log(indRide.subtitle);
+    //log(indRide.id);
+    //log(indRide.title);
     
     if (JSON.parse(localStorage.getItem("watchedRides")) !== null)
     {
@@ -488,27 +498,11 @@ var populateTimes = function() {
   watchedMenu.items(0, watchedRidesList);
 };
 
-/*
-Settings.config(
-  { url:'https://jordanbrinkman.com/universal/settings.htm' },
-  function(e) {
-    console.log('opened config');
-  },
-  function(e) {
-    console.log('Recieved settings!');
-    var options = e.options;
-    var fileURL = options.fileurl;
-    console.log(fileURL);
-    localStorage.setItem('phpfile', fileURL);
-  }
-);
-*/
-
 Pebble.addEventListener("showConfiguration",
 	function() {
     var config = "https://theconsciousness.github.io/UniversalWaitTimes/index.html";
 		var settings = encodeURIComponent(localStorage.getItem("settings"));
-		console.log("Opening Config: " + config + "?settings=" + settings);
+		log("Opening Config: " + config + "?settings=" + settings);
 		Pebble.openURL(config + "?settings=" + settings);
 	}
 );
@@ -520,12 +514,12 @@ Pebble.addEventListener("webviewclosed",
 			settings = JSON.parse(decodeURIComponent(e.response));
 			localStorage.clear();
 			localStorage.setItem("settings", JSON.stringify(settings));
-      console.log("stringify: " + JSON.stringify(localStorage.getItem("settings")));
-      console.log("parse: " + JSON.parse(localStorage.getItem("settings")).fileurl);
-			//console.log(JSON.stringify(settings));
+      log("stringify: " + JSON.stringify(localStorage.getItem("settings")));
+      log("parse: " + JSON.parse(localStorage.getItem("settings")).fileurl);
+			//log(JSON.stringify(settings));
 		} catch(err) {
 			settings = false;
-			console.log("No JSON response or received Cancel event");
+			log("No JSON response or received Cancel event");
 		}
 	}
 );
@@ -536,14 +530,14 @@ function typeOf (obj) {
 
 Wakeup.launch(function(e) {
     
-  //console.log(localStorage.getItem("lastUpdate") + " " + typeOf(localStorage.getItem("lastUpdate")));
-  //console.log(localStorage.getItem("watchedRides") + " " + typeOf(localStorage.getItem("watchedRides")));
-  //console.log(localStorage.getItem("rideData") + " " + typeOf(localStorage.getItem("rideData")));
+  //log(localStorage.getItem("lastUpdate") + " " + typeOf(localStorage.getItem("lastUpdate")));
+  //log(localStorage.getItem("watchedRides") + " " + typeOf(localStorage.getItem("watchedRides")));
+  //log(localStorage.getItem("rideData") + " " + typeOf(localStorage.getItem("rideData")));
   
   // if (localStorage.getItem("lastUpdate") === null) also doesnt work
   if (localStorage.getItem("lastUpdate") == "null")
     {
-      console.log("Setting lastUpdate for first time");
+      log("Setting lastUpdate for first time");
       localStorage.setItem("lastUpdate", 0);
     }
   
@@ -551,7 +545,7 @@ Wakeup.launch(function(e) {
   if ((Date.now() - Number(localStorage.getItem("lastUpdate"))) > 600000 || localStorage.getItem("rideData") === null)
     {
       // Get the ride data and set the last update time
-      console.log("10 minutes have passed");
+      log("10 minutes have passed");
       ajaxCall();
       localStorage.setItem("lastUpdate", Date.now());
     }
@@ -559,31 +553,31 @@ Wakeup.launch(function(e) {
   
   // If watch wakes up to a WakeUp
   if (e.wakeup) {
-    console.log('Woke up to ' + e.id + '! data: ' + JSON.stringify(e.data));
+    log('Woke up to ' + e.id + '! data: ' + JSON.stringify(e.data));
       
     // Check the watched rides for better wait times
     checkWatchedRides();
   } else {
     // If watch app was ran by user, not by WakeUp
-    console.log('Regular launch not by a wakeup event.');
+    log('Regular launch not by a wakeup event.');
     
     // For each of the WakeUps scheduled...
     Wakeup.each(function(e) {
-      //console.log('Wakeup ' + e.id + ': ' + JSON.stringify(e));
+      //log('Wakeup ' + e.id + ': ' + JSON.stringify(e));
       
       
       // Get the time til next Wakeup
       var timeToGo = (e.data.wakeTime - (Date.now() / 1000)) * 1000;
-      console.log((timeToGo / 1000) / 60 + " mins to go til " + e.id);
+      log((timeToGo / 1000) / 60 + " mins to go til " + e.id);
       // Solves the issue of waking up to a missed Wakeup
       if (timeToGo > 1)
         {
           // Set the timer if the screen is on
           timerTimeout = setTimeout(function() {
-            console.log('Screen on during timer, checking wait times');
+            log('Screen on during timer, checking wait times');
             checkWatchedRides();
           }, timeToGo);
-          console.log(timerTimeout + " screen on; setting timer.");
+          log(timerTimeout + " screen on; setting timer.");
         }
       else
         {
