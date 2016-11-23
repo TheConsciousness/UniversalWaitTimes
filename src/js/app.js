@@ -1,6 +1,8 @@
 /**
 To-do list:
- 1. Implement UUID to localStorage and error log sending
+ 1. If on startup, watchedRides wakes exist but no wakeups are set, set a wakeup.
+ 2. Do not let users 'watch' rides that wait times are non-numerical / closed.
+ 3. Implement UUID to localStorage and error log sending
  
  */
 
@@ -73,7 +75,7 @@ var checkWatchedRides = function() {
               //log(JSON.stringify(rideData[ride]) + ": " + JSON.stringify(rideData[ride].WaitTime) + " < " + JSON.stringify(watchedRides.rides[ride]));
               
               var shortened = JSON.stringify(rideData[ride].RideName).split(" ")[0] + " " + JSON.stringify(rideData[ride].RideName).split(" ")[1];
-              lessTitle += shortened + ": " + JSON.stringify(rideData[ride].WaitTime) + " < " + watchedRides.rides[ride] + "; ";
+              lessTitle += "[" + shortened + ": " + JSON.stringify(rideData[ride].WaitTime) + " < " + watchedRides.rides[ride] + "] ";
               
               //details.title(JSON.stringify(ride));
               //details.subtitle("Now: " + JSON.stringify(rideData[ride].WaitTime));
@@ -123,7 +125,8 @@ var scheduleEvent = function() {
         wakeupVar = Wakeup.schedule(
           {
             time: wakeTime,
-            data: { wakeTime: wakeTime }
+            data: { wakeTime: wakeTime },
+            notifyIfMissed: true
           },
           function(e) {
             if (e.failed) {
