@@ -2,8 +2,9 @@
 To-do list:
  1. If on startup, watchedRides wakes exist but no wakeups are set, set a wakeup.
  2. Do not let users 'watch' rides that wait times are non-numerical / closed.
- 3. Implement UUID to localStorage and error log sending
- 
+ 3. Sometimes in slow network environments, ride checking occurs before ajaxCall has brought in new data. Make ajaxCall block and call ride checking on success.
+ 4. Remove scheduleEvent from checkRides, call them separately as failing javascript can stop events from being scheduled.
+ 9999. Implement UUID to localStorage and error log sending
  */
 
 var UI = require('ui');
@@ -60,13 +61,14 @@ var checkWatchedRides = function() {
       
       // Variables for holding "Kong: 20 < 30; etc"
       var lessTitle = "";
-      var lessSubtitle = "";
+      
+      console.log("rideData length: " + Object.keys(rideData).length);
       
       for (var ride in watchedRides.rides)
         {
           //log("JSON: " + JSON.stringify(watchedRides));
-          //log("Now: " + JSON.stringify(rideData[ride].RideName) + " - " + JSON.stringify(rideData[ride].WaitTime));
-          //log("Then: " + JSON.stringify(ride) + " - " + watchedRides.rides[ride]);
+          log("Now: " + JSON.stringify(rideData[ride].RideName) + " - " + JSON.stringify(rideData[ride].WaitTime));
+          log("Then: " + JSON.stringify(ride) + " - " + watchedRides.rides[ride]);
           
           // If current time time is less than saved time
           // Not likely to see this, so test with ==
@@ -278,7 +280,7 @@ details.on('click', 'select', function(e) {
     else
       {
         watchedRides.rides[details.body()] = details.subtitle().split(" ")[0];
-        watchedRides.wakes = 2;
+        watchedRides.wakes = 8;
         messages.title(details.title());
         messages.subtitle("Added to watchlist");
         messages.body("");
@@ -288,7 +290,7 @@ details.on('click', 'select', function(e) {
     }
   else
   {
-    watchedRides.wakes = 2;
+    watchedRides.wakes = 8;
     watchedRides.ride[details.body()] = details.subtitle().split(" ")[0];
     
     messages.title(details.title());
