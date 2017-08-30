@@ -318,6 +318,8 @@ main.on('select', function(e) {
     { USOMenu.show(); }
   else if (e.item.title == "Islands of Adventure")
     { IOAMenu.show(); }
+  else if (e.item.title == "Volcano Bay")
+    { VBMenu.show(); }
   else if (e.item.title == "Refresh Times")
     { 
       var parkTimes = [{
@@ -325,6 +327,9 @@ main.on('select', function(e) {
         subtitle: 'Loading...'
       }, {
         title: 'Islands of Adventure',
+        subtitle: 'Loading...'
+      }, {
+        title: 'Volcano Bay',
         subtitle: 'Loading...'
       }, {
         title: 'Refresh Times'
@@ -360,6 +365,15 @@ var USOMenu = new UI.Menu({
     }]
   });
 
+var VBMenu = new UI.Menu({
+    sections: [{
+      items: [{
+        title: 'VB Rides',
+        subtitle: 'Not loaded'
+      }]
+    }]
+  });
+
 USOMenu.on('select', function(e) {
   details.title(e.item.title);
   details.subtitle(e.item.subtitle);
@@ -368,6 +382,13 @@ USOMenu.on('select', function(e) {
 });
 
 IOAMenu.on('select', function(e) {
+  details.title(e.item.title);
+  details.subtitle(e.item.subtitle);
+  details.body(e.item.id);
+  details.show();
+});
+
+VBMenu.on('select', function(e) {
   details.title(e.item.title);
   details.subtitle(e.item.subtitle);
   details.body(e.item.id);
@@ -429,19 +450,25 @@ var populateTimes = function() {
         title: 'Islands of Adventure',
         subtitle: rideData.IOA
       }, {
+        title: 'Volcano Bay',
+        subtitle: rideData.VB
+      }, {
         title: 'Refresh Times'
       }, {
         title: 'Watched Rides'
       }, {
         title: 'Settings'
       }];
+  log(parkTimes);
   main.items(0, parkTimes);
   
   delete rideData.USO;
   delete rideData.IOA;
+  delete rideData.VB;
   
   var USOwaitTimes = [];
   var IOAwaitTimes = [];
+  var VBwaitTimes  = [];
   var watchedRidesList = [];
   
   for (var ride in rideData)
@@ -493,13 +520,16 @@ var populateTimes = function() {
       USOwaitTimes.push(indRide);
     } else if (JSON.stringify(rideData[ride].VenueId) == 10000) {
       IOAwaitTimes.push(indRide);
+    } else if (JSON.stringify(rideData[ride].VenueId) == 13801) {
+      VBwaitTimes.push(indRide);
     }
+    
   }
-   
   
   // Display them on the watch
   USOMenu.items(0, USOwaitTimes);
   IOAMenu.items(0, IOAwaitTimes);
+  VBMenu.items(0, VBwaitTimes);
   watchedMenu.items(0, watchedRidesList);
 };
 
@@ -598,4 +628,3 @@ Wakeup.launch(function(e) {
 //Wakeup.cancel('all');
 //Wakeup.cancel("all");
 main.show();
-
